@@ -85,7 +85,7 @@ RUN apt-get update -qq && \
 RUN python3.10 -m pip --no-cache-dir install \
     jupyterlab==4.0.10 \
     numpy==1.26.4 \
-    pandas==2.1.4 \  # Downgraded for PyCaret compatibility
+    pandas==2.1.4 \
     scipy==1.13.0 \
     matplotlib==3.8.3 \
     seaborn==0.13.2 \
