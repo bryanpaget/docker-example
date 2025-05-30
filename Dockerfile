@@ -52,13 +52,18 @@ RUN mamba install -n py_env -y -c conda-forge \
     gensim=4.3 \
     geopandas=0.14 \
     shap=0.45 \
-    jupyter_contrib_nbextensions \
-    jupyter_nbextensions_configurator \
     jupyterlab-git \
     jupyterlab-lsp \
     jupyterlab_code_formatter \
     jupyterlab_widgets \
     ipywidgets \
+    notebook \  # Required for jupyter_contrib_nbextensions
+    && mamba clean -y --all
+
+# Install Jupyter extensions
+RUN mamba install -n py_env -y -c conda-forge \
+    jupyter_contrib_nbextensions \
+    jupyter_nbextensions_configurator \
     && mamba clean -y --all
 
 # Install R and heavy R packages
