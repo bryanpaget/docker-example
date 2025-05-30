@@ -1,4 +1,4 @@
-name: Mamba Docker Build Benchmark
+name: CPU-Intensive Docker Build
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 90  # Increased timeout for CPU tasks
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
@@ -19,7 +19,7 @@ jobs:
     - name: Build Docker image with timing
       run: |
         START_TIME=$(date +%s)
-        docker build -t mamba-benchmark .
+        docker build -t cpu-benchmark .
         END_TIME=$(date +%s)
         BUILD_TIME=$((END_TIME - START_TIME))
         echo "BUILD_TIME=${BUILD_TIME}" >> $GITHUB_ENV
@@ -30,8 +30,10 @@ jobs:
         echo "## Docker Build Time" >> $GITHUB_STEP_SUMMARY
         echo "Total build time: ${BUILD_TIME} seconds" >> $GITHUB_STEP_SUMMARY
         echo "$((BUILD_TIME / 60)) minutes and $((BUILD_TIME % 60)) seconds" >> $GITHUB_STEP_SUMMARY
-        echo "### Environment Details" >> $GITHUB_STEP_SUMMARY
-        echo "- Base: Ubuntu 22.04" >> $GITHUB_STEP_SUMMARY
-        echo "- Package Manager: Mamba (conda-forge)" >> $GITHUB_STEP_SUMMARY
-        echo "- Python: 20+ data science packages" >> $GITHUB_STEP_SUMMARY
-        echo "- R: 15+ CRAN/Bioconductor packages" >> $GITHUB_STEP_SUMMARY
+        echo "### CPU Intensive Tasks" >> $GITHUB_STEP_SUMMARY
+        echo "- Redis compilation" >> $GITHUB_STEP_SUMMARY
+        "- OpenSSL cryptographic benchmarks" >> $GITHUB_STEP_SUMMARY
+        "- Go language benchmarks" >> $GITHUB_STEP_SUMMARY
+        "- Kubernetes load testing" >> $GITHUB_STEP_SUMMARY
+        "- Sysbench CPU test" >> $GITHUB_STEP_SUMMARY
+        "- Parallel compression benchmark" >> $GITHUB_STEP_SUMMARY
