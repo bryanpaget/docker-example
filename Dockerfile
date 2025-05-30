@@ -57,7 +57,7 @@ RUN mamba install -n py_env -y -c conda-forge \
     jupyterlab_code_formatter \
     jupyterlab_widgets \
     ipywidgets \
-    notebook \  # Required for jupyter_contrib_nbextensions
+    notebook \
     && mamba clean -y --all
 
 # Install Jupyter extensions
