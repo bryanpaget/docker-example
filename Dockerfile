@@ -25,9 +25,9 @@ ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
 # Install Mambaforge
-RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh && \
-    bash Mambaforge-Linux-x86_64.sh -b -p /opt/mambaforge && \
-    rm Mambaforge-Linux-x86_64.sh
+RUN wget -q https://github.com/conda-forge/miniforge/releases/download/25.3.0-3/Miniforge3-25.3.0-3-Linux-x86_64.sh && \
+    bash Miniforge3-25.3.0-3-Linux-x86_64.sh -b -p /opt/mambaforge && \
+    rm Miniforge3-25.3.0-3-Linux-x86_64.sh 
 ENV PATH="/opt/mambaforge/bin:${PATH}"
 
 # Create and activate conda environment
