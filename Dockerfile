@@ -8,56 +8,14 @@ ENV DEBIAN_FRONTEND=noninteractive
 RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends \
     build-essential \
-    software-properties-common \
     curl \
     wget \
     git \
-    vim \
-    nano \
-    htop \
-    tree \
     unzip \
-    libssl-dev \
-    zlib1g-dev \
-    libncurses5-dev \
-    libncursesw5-dev \
-    libreadline-dev \
-    libsqlite3-dev \
-    libgdbm-dev \
-    libdb5.3-dev \
-    libbz2-dev \
-    libexpat1-dev \
-    liblzma-dev \
-    tk-dev \
-    libffi-dev \
-    libxml2-dev \
-    libxslt-dev \
-    libblas-dev \
-    liblapack-dev \
-    gfortran \
-    libcurl4-openssl-dev \
-    libopenblas-dev \
-    libharfbuzz-dev \
-    libfribidi-dev \
-    libfreetype6-dev \
-    libpng-dev \
-    libtiff5-dev \
-    libjpeg-dev \
-    libicu-dev \
-    libgsl-dev \
-    libudunits2-dev \
-    libproj-dev \
-    libgeos-dev \
-    libgdal-dev \
-    libcairo2-dev \
-    libxt-dev \
-    openjdk-11-jdk \
+    ca-certificates \
     fonts-dejavu \
     tzdata \
     locales \
-    python3.10 \
-    python3.10-dev \
-    python3.10-distutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Set locale
@@ -66,73 +24,38 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install pip
-RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
-    python3.10 get-pip.py && \
-    rm get-pip.py
+# Install Mambaforge
+RUN wget -q https://github.com/conda-forge/miniforge/releases/latest/download/Mambaforge-Linux-x86_64.sh && \
+    bash Mambaforge-Linux-x86_64.sh -b -p /opt/mambaforge && \
+    rm Mambaforge-Linux-x86_64.sh
+ENV PATH="/opt/mambaforge/bin:${PATH}"
 
-# Install R with manual key installation
-RUN apt-get update -qq && \
-    apt-get install -y --no-install-recommends dirmngr gnupg2 && \
-    gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
-    gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | apt-key add - && \
-    echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | tee -a /etc/apt/sources.list.d/r.list && \
-    apt-get update -qq && \
-    apt-get install -y --no-install-recommends r-base r-base-dev && \
-    rm -rf /var/lib/apt/lists/*
+# Create and activate conda environment
+RUN mamba create -n py_env python=3.10 jupyterlab=4.0.10 -y -c conda-forge
 
-# Install Python data science packages (updated versions to resolve conflicts)
-RUN python3.10 -m pip --no-cache-dir install \
-    jupyterlab==4.0.10 \
-    numpy==1.26.4 \
-    pandas==2.1.4 \
-    scipy==1.13.0 \
-    matplotlib==3.8.3 \
-    seaborn==0.13.2 \
-    scikit-learn==1.4.1.post1 \
-    tensorflow==2.16.1 \
-    torch==2.2.1 \
-    torchvision==0.17.1 \
-    torchaudio==2.2.1 \
-    xgboost==2.0.3 \
-    lightgbm==4.3.0 \
-    statsmodels==0.14.1 \
-    nltk==3.8.1 \
-    spacy==3.7.4 \
-    plotly==5.20.0 \
-    dash==2.16.1 \
-    bokeh==3.4.0 \
-    dask==2024.5.1 \
-    pystan==3.9.0 \
-    prophet==1.1.5 \
-    pycaret==3.3.0 \
-    opencv-python-headless==4.9.0.80 \
-    keras==3.1.1 \
-    transformers==4.40.0 \
-    datasets==2.19.0 \
-    gensim==4.3.2 \
-    networkx==3.2.1 \
-    sympy==1.12 \
-    geopandas==0.14.3 \
-    shap==0.45.1 \
-    streamlit==1.32.2 \
-    fastapi==0.110.0 \
-    uvicorn==0.29.0 \
-    && python3.10 -m spacy download en_core_web_lg \
-    && python3.10 -m nltk.downloader popular  # Changed to download only popular packages
-
-# Install R packages (with comprehensive list)
-RUN R -e "install.packages(c('tidyverse', 'rmarkdown', 'knitr', 'data.table', 'lubridate', \
-    'caret', 'randomForest', 'xgboost', 'glmnet', 'dbscan', 'factoextra', \
-    'igraph', 'ggraph', 'shiny', 'shinydashboard', 'plotly', 'leaflet', \
-    'lme4', 'brms', 'rstan', 'forecast', 'prophet', 'survival', 'mlr3', \
-    'tidymodels', 'BiocManager', 'devtools'), repos='https://cran.rstudio.com/')" && \
-    R -e "BiocManager::install(c('DESeq2', 'limma', 'edgeR', 'Biobase', \
-    'GenomicRanges', 'SummarizedExperiment', 'AnnotationDbi'))" && \
-    R -e "IRkernel::installspec()"
-
-# Install Jupyter extensions
-RUN python3.10 -m pip --no-cache-dir install \
+# Install heavy Python packages with Mamba (selected for size/compilation time)
+RUN mamba install -n py_env -y -c conda-forge \
+    numpy=1.26 \
+    scipy=1.13 \
+    pandas=2.1 \
+    matplotlib=3.8 \
+    seaborn=0.13 \
+    scikit-learn=1.4 \
+    tensorflow=2.16 \
+    pytorch=2.2 \
+    torchvision=0.17 \
+    torchaudio=2.2 \
+    xgboost=2.0 \
+    lightgbm=4.3 \
+    statsmodels=0.14 \
+    nltk=3.8 \
+    spacy=3.7 \
+    plotly=5.20 \
+    bokeh=3.4 \
+    dask=2024.5 \
+    gensim=4.3 \
+    geopandas=0.14 \
+    shap=0.45 \
     jupyter_contrib_nbextensions \
     jupyter_nbextensions_configurator \
     jupyterlab-git \
@@ -140,17 +63,41 @@ RUN python3.10 -m pip --no-cache-dir install \
     jupyterlab_code_formatter \
     jupyterlab_widgets \
     ipywidgets \
-    jupyterlab-vim \
-    jupyterlab-drawio
+    && mamba clean -y --all
+
+# Install R and heavy R packages
+RUN mamba install -n py_env -y -c conda-forge \
+    r-base=4.3 \
+    r-tidyverse=2.0 \
+    r-rmarkdown=2.25 \
+    r-knitr=1.45 \
+    r-caret=6.0 \
+    r-randomforest=4.7 \
+    r-xgboost=1.7 \
+    r-glmnet=4.1 \
+    r-plotly=4.10 \
+    r-leaflet=2.2 \
+    r-forecast=8.21 \
+    r-prophet=1.0 \
+    r-devtools=2.4 \
+    r-biocmanager=1.30 \
+    r-irkernel=1.3 \
+    && mamba clean -y --all
+
+# Download large models/data
+RUN /bin/bash -c "source activate py_env && \
+    python -m spacy download en_core_web_lg && \
+    python -m nltk.downloader popular"
 
 # Configure Jupyter
-RUN jupyter contrib nbextension install --user && \
-    jupyter nbextensions_configurator enable --user && \
-    jupyter lab build --minimize=False  # Disable minimization to increase build time
+RUN /bin/bash -c "source activate py_env && \
+    jupyter contrib nbextension install --sys-prefix && \
+    jupyter nbextensions_configurator enable --sys-prefix && \
+    jupyter lab build --minimize=False"
 
 # Create workspace directory
 RUN mkdir /workspace
 WORKDIR /workspace
 
-# Default command
-CMD ["jupyter", "lab", "--ip=0.0.0.0", "--port=8888", "--no-browser", "--allow-root"]
+# Set default command
+CMD ["/bin/bash", "-c", "source activate py_env && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root"]
