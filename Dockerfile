@@ -42,15 +42,11 @@ RUN mamba install -n py_env -y -c conda-forge \
     seaborn=0.13 \
     scikit-learn=1.4 \
     tensorflow=2.16 \
-    pytorch=2.2 \
-    torchvision=0.17 \
-    torchaudio=2.2 \
     xgboost=2.0 \
     lightgbm=4.3 \
     statsmodels=0.14 \
     nltk=3.8 \
     spacy=3.7 \
-    plotly=5.20 \
     bokeh=3.4 \
     dask=2024.5 \
     gensim=4.3 \
