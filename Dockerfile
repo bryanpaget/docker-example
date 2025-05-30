@@ -55,6 +55,9 @@ RUN apt-get update -qq && \
     fonts-dejavu \
     tzdata \
     locales \
+    python3.10 \
+    python3.10-dev \
+    python3.10-distutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Set locale
@@ -63,23 +66,22 @@ ENV LANG en_US.UTF-8
 ENV LANGUAGE en_US:en
 ENV LC_ALL en_US.UTF-8
 
-# Install Python 3.10
-RUN add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt-get update && \
-    apt-get install -y python3.10 python3.10-dev python3.10-distutils
-
 # Install pip
 RUN curl https://bootstrap.pypa.io/get-pip.py -o get-pip.py && \
     python3.10 get-pip.py && \
     rm get-pip.py
 
-# Install R
-RUN apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
-    add-apt-repository "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" && \
-    apt-get update && \
-    apt-get install -y r-base r-base-dev
+# Install R with manual key installation
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends dirmngr gnupg2 && \
+    gpg --keyserver keyserver.ubuntu.com --recv-key E298A3A825C0D65DFD57CBB651716619E084DAB9 && \
+    gpg -a --export E298A3A825C0D65DFD57CBB651716619E084DAB9 | apt-key add - && \
+    echo "deb https://cloud.r-project.org/bin/linux/ubuntu $(lsb_release -cs)-cran40/" | tee -a /etc/apt/sources.list.d/r.list && \
+    apt-get update -qq && \
+    apt-get install -y --no-install-recommends r-base r-base-dev && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Python data science packages
+# Install Python data science packages (with versions that require compilation)
 RUN python3.10 -m pip --no-cache-dir install \
     jupyterlab==4.0.10 \
     numpy==1.26.4 \
@@ -104,7 +106,7 @@ RUN python3.10 -m pip --no-cache-dir install \
     pystan==3.9.0 \
     prophet==1.1.5 \
     pycaret==3.3.0 \
-    opencv-python==4.9.0.80 \
+    opencv-python-headless==4.9.0.80 \
     keras==3.1.1 \
     transformers==4.40.0 \
     datasets==2.19.0 \
@@ -119,19 +121,15 @@ RUN python3.10 -m pip --no-cache-dir install \
     && python3.10 -m spacy download en_core_web_lg \
     && python3.10 -m nltk.downloader all
 
-# Install R packages
+# Install R packages (with comprehensive list)
 RUN R -e "install.packages(c('tidyverse', 'rmarkdown', 'knitr', 'data.table', 'lubridate', \
     'caret', 'randomForest', 'xgboost', 'glmnet', 'dbscan', 'factoextra', \
     'igraph', 'ggraph', 'shiny', 'shinydashboard', 'plotly', 'leaflet', \
     'lme4', 'brms', 'rstan', 'forecast', 'prophet', 'survival', 'mlr3', \
-    'tidymodels', 'BiocManager', 'devtools'), repos='https://cran.rstudio.com/')"
-
-# Install Bioconductor packages
-RUN R -e "BiocManager::install(c('DESeq2', 'limma', 'edgeR', 'Biobase', \
-    'GenomicRanges', 'SummarizedExperiment', 'AnnotationDbi'))"
-
-# Install IRkernel for Jupyter
-RUN R -e "IRkernel::installspec()"
+    'tidymodels', 'BiocManager', 'devtools'), repos='https://cran.rstudio.com/')" && \
+    R -e "BiocManager::install(c('DESeq2', 'limma', 'edgeR', 'Biobase', \
+    'GenomicRanges', 'SummarizedExperiment', 'AnnotationDbi'))" && \
+    R -e "IRkernel::installspec()"
 
 # Install Jupyter extensions
 RUN python3.10 -m pip --no-cache-dir install \
@@ -148,7 +146,7 @@ RUN python3.10 -m pip --no-cache-dir install \
 # Configure Jupyter
 RUN jupyter contrib nbextension install --user && \
     jupyter nbextensions_configurator enable --user && \
-    jupyter lab build
+    jupyter lab build --minimize=False  # Disable minimization to increase build time
 
 # Create workspace directory
 RUN mkdir /workspace
