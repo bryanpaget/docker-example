@@ -81,11 +81,11 @@ RUN apt-get update -qq && \
     apt-get install -y --no-install-recommends r-base r-base-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Install Python data science packages (with versions that require compilation)
+# Install Python data science packages (updated versions to resolve conflicts)
 RUN python3.10 -m pip --no-cache-dir install \
     jupyterlab==4.0.10 \
     numpy==1.26.4 \
-    pandas==2.2.1 \
+    pandas==2.1.4 \  # Downgraded for PyCaret compatibility
     scipy==1.13.0 \
     matplotlib==3.8.3 \
     seaborn==0.13.2 \
@@ -119,7 +119,7 @@ RUN python3.10 -m pip --no-cache-dir install \
     fastapi==0.110.0 \
     uvicorn==0.29.0 \
     && python3.10 -m spacy download en_core_web_lg \
-    && python3.10 -m nltk.downloader all
+    && python3.10 -m nltk.downloader popular  # Changed to download only popular packages
 
 # Install R packages (with comprehensive list)
 RUN R -e "install.packages(c('tidyverse', 'rmarkdown', 'knitr', 'data.table', 'lubridate', \
